@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: quest_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+    links:
+      - db
+    restart: unless-stopped
+    networks:
+      - quests
+  db:
+    container_name: quests_postgres
+    image: postgres:16.2-alpine3.19
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "adminPG"
+      POSTGRES_PASSWORD: "1Qwerty2$"
+      POSTGRES_DB: "quests"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - quests
+  pgadmin:
+    container_name: quests_pgadmin
+    image: dpage/pgadmin4:8.4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "pgadmin@quests.com"
+      PGADMIN_DEFAULT_PASSWORD: "1Qwerty2$"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - quests
+volumes:
+  habrdb-data:
+  pgadmin-data:
+networks:
+  quests:
+    driver: bridge
