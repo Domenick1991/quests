@@ -35,7 +35,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"id:": id})
 		}
 	} else {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Неверный входной Json": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Неверный входной Json"})
 		return
 	}
 
