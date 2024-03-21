@@ -1,5 +1,7 @@
 package internal
 
+import "errors"
+
 // Quests model info
 // @Description Quests json информация о заданиях и их шагов
 type Quests struct {
@@ -28,29 +30,21 @@ type NewCompleteSteps struct {
 }
 
 type CompleteStep struct {
-	//TODO вообще правильно ИД пользователя не передавать, а брать из авторизации, но тогда будет сложно тестировать, с учетом того, что это тестовое задание, то будем передавать
 	Stepid int `json:"stepid"` //Идентификатор шага
 	Userid int `json:"userid"` //Идентификатор пользователя выполневшего шаг
 }
 
-func (complete *CompleteStep) ConvertToDB() (CompleteStepDB, []ErrorList) {
-	var errlist []ErrorList
-
+func (complete *CompleteStep) ConvertToDB() (CompleteStepDB, error) {
 	completeDB := CompleteStepDB{}
 	if complete.Stepid == 0 {
-		errlist = append(errlist, ErrorList{"Идентификатор шага должен быть больше 0"})
+		return completeDB, errors.New("Идентификатор шага должен быть больше 0")
 	}
 	if complete.Userid == 0 {
-		errlist = append(errlist, ErrorList{"Идентификатор пользователя должен быть больше 0"})
+		return completeDB, errors.New("Идентификатор пользователя должен быть больше 0")
 	}
 	completeDB.Stepid = complete.Stepid
 	completeDB.Userid = complete.Userid
-
-	if len(errlist) > 0 {
-		return completeDB, errlist
-	} else {
-		return completeDB, nil
-	}
+	return completeDB, nil
 }
 
 type CompleteStepDB struct {
@@ -74,22 +68,15 @@ type NewQuest struct {
 	QuestSteps []NewQuestStep `json:"QuestSteps"` //Шаги задания
 }
 
-func (quest *NewQuest) ConvertToDB() (NewQuestDB, []ErrorList) {
-	var errlist []ErrorList
-
+func (quest *NewQuest) ConvertToDB() (NewQuestDB, error) {
 	questdb := NewQuestDB{}
 	questdb.Id = quest.Id
 
 	if quest.Name == "" {
-		errlist = append(errlist, ErrorList{"Имя задания должно содержать от 1 до 200 символов"})
+		return questdb, errors.New("Имя задания должно содержать от 1 до 200 символов")
 	}
 	questdb.Name = quest.Name
-
-	if len(errlist) > 0 {
-		return questdb, errlist
-	} else {
-		return questdb, nil
-	}
+	return questdb, nil
 }
 
 type NewQuestDB struct {
@@ -119,21 +106,19 @@ type NewQuestStep struct {
 	IsMulti  *bool  `json:"IsMulti"`  //Признак того, что шаг можно выполнять несколько раз
 }
 
-func (questStep *NewQuestStep) ConvertToDB() (NewQuestStepDB, []ErrorList) {
-	var errlist []ErrorList
-
+func (questStep *NewQuestStep) ConvertToDB() (NewQuestStepDB, error) {
 	questStepDB := NewQuestStepDB{}
 	questStepDB.Id = questStep.Id
 
 	if questStep.StepName == "" {
-		errlist = append(errlist, ErrorList{"Не указано описание шага"})
+		return questStepDB, errors.New("Не указано описание шага")
 	}
 	if questStep.QuestId <= 0 {
-		errlist = append(errlist, ErrorList{"Не указан идентификатор задания, к которому относится шаг"})
+		return questStepDB, errors.New("Не указан идентификатор задания, к которому относится шаг")
 	}
 
 	if questStep.Bonus < 0 {
-		errlist = append(errlist, ErrorList{"Бонус не может быть меньше 0"})
+		return questStepDB, errors.New("Бонус не может быть меньше 0")
 	}
 
 	questStepDB.IsMulti = *questStep.IsMulti
@@ -145,11 +130,8 @@ func (questStep *NewQuestStep) ConvertToDB() (NewQuestStepDB, []ErrorList) {
 	questStepDB.Bonus = questStep.Bonus
 	questStepDB.StepName = questStep.StepName
 
-	if len(errlist) > 0 {
-		return questStepDB, errlist
-	} else {
-		return questStepDB, nil
-	}
+	return questStepDB, nil
+
 }
 
 // UpdateQuestSteps model info
@@ -164,26 +146,21 @@ type UpdateQuestStep struct {
 	IsMulti *bool `json:"IsMulti"` //Признак того, что шаг можно выполнять несколько раз
 }
 
-func (questStep *UpdateQuestStep) ConvertToDB() (NewQuestStepDB, []ErrorList) {
-	var errlist []ErrorList
-
+func (questStep *UpdateQuestStep) ConvertToDB() (NewQuestStepDB, error) {
 	questStepDB := NewQuestStepDB{}
 	questStepDB.Id = questStep.Id
 
 	if questStep.Id == 0 {
-		errlist = append(errlist, ErrorList{"Не указан идентификатор шага, который необходимо обновить"})
+		return questStepDB, errors.New("Не указан идентификатор шага, который необходимо обновить")
 	}
 	if questStep.IsMulti == nil {
-		errlist = append(errlist, ErrorList{"Укажите признак многократного выполнения"})
+		return questStepDB, errors.New("кажите признак многократного выполнения")
 	}
 	questStepDB.Bonus = questStep.Bonus
 	questStepDB.IsMulti = *questStep.IsMulti
 
-	if len(errlist) > 0 {
-		return questStepDB, errlist
-	} else {
-		return questStepDB, nil
-	}
+	return questStepDB, nil
+
 }
 
 type NewQuestStepDB struct {

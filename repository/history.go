@@ -15,18 +15,17 @@ func NewHistoryRepo(db *dbx.DB) *HistoryRepo {
 	return &HistoryRepo{db: db}
 }
 
-func (history *HistoryRepo) CompleteSteps(сompleteSteps internal.NewCompleteSteps) []internal.ErrorList {
+func (history *HistoryRepo) CompleteSteps(сompleteSteps internal.NewCompleteSteps) error {
 	for _, сompleteStep := range сompleteSteps.CompleteSteps {
-		сompleteStepDB, errlist := сompleteStep.ConvertToDB()
-		if len(errlist) > 0 {
-			return errlist
+		сompleteStepDB, err := сompleteStep.ConvertToDB()
+		if err != nil {
+			return err
 		}
 		//Если задание можно выполнить - выполняем, если нет, то просто игнорируем
 		if checkCompliteStep(history.db, сompleteStep) {
-			err := history.db.Model(&сompleteStepDB).Insert()
+			err = history.db.Model(&сompleteStepDB).Insert()
 			if err != nil {
-				errlist = append(errlist, internal.ErrorList{"Не удалось выполнить задание" + err.Error()})
-				return errlist
+				return err
 			}
 		}
 	}

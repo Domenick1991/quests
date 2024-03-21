@@ -33,40 +33,37 @@ func (quest *QuestRepo) GetQuests() ([]internal.Quests, error) {
 	return quests, nil
 }
 
-func (quest *QuestRepo) CreateQuest(newquest internal.NewQuest) []internal.ErrorList {
-	questDB, errlist := newquest.ConvertToDB()
-	if len(errlist) > 0 {
-		return errlist
+func (quest *QuestRepo) CreateQuest(newquest internal.NewQuest) error {
+	questDB, err := newquest.ConvertToDB()
+	if err != nil {
+		return err
 	}
 
 	var oldquestDB = internal.NewQuestDB{}
-	err := quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldquestDB)
+	err = quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldquestDB)
 	if err != nil {
 		err = quest.db.Model(&questDB).Insert("Name", "Cost")
 		if err != nil {
-			errlist = append(errlist, internal.ErrorList{"Не удалось добавить задание"})
-			return errlist
+			return err
 		} else {
 			//Если передавалась информация о шагах - добавляем и шаги
 			if newquest.QuestSteps != nil {
 				for _, questStep := range newquest.QuestSteps {
 					questStep.QuestId = questDB.Id
-					questStepDB, errlist := questStep.ConvertToDB()
-					if len(errlist) > 0 {
-						return errlist
+					questStepDB, err := questStep.ConvertToDB()
+					if err != nil {
+						return err
 					}
 					err = quest.CreateQuestStep(questStepDB)
 					if err != nil {
-						errlist = append(errlist, internal.ErrorList{"Ошибка при добавлении шага"})
-						return errlist
+						return err
 					}
 				}
 			}
 			return nil
 		}
 	} else {
-		errlist = append(errlist, internal.ErrorList{"Задание с таким именем существует, id :" + strconv.Itoa(oldquestDB.Id)})
-		return errlist
+		return fmt.Errorf("Задание с таким именем существует, id :%s", strconv.Itoa(oldquestDB.Id))
 	}
 }
 
@@ -84,34 +81,32 @@ func (quest *QuestRepo) CreateQuestStep(newQuestStepDB internal.NewQuestStepDB) 
 	return nil
 }
 
-func (quest *QuestRepo) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) []internal.ErrorList {
+func (quest *QuestRepo) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error {
 	for _, questStep := range newQuestSteps.QuestSteps {
-		questStepDB, errlist := questStep.ConvertToDB()
-		if len(errlist) > 0 {
-			return errlist
-		}
-		err := quest.CreateQuestStep(questStepDB)
+		questStepDB, err := questStep.ConvertToDB()
 		if err != nil {
-			errlist = append(errlist, internal.ErrorList{"Ошибка при добавлении шага: " + err.Error()})
-			return errlist
+			return err
+		}
+		err = quest.CreateQuestStep(questStepDB)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 // @Summary Обновляет информацию о шагах заданий
-func (quest *QuestRepo) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) []internal.ErrorList {
+func (quest *QuestRepo) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error {
 	for _, questStep := range updateQuestSteps.QuestSteps {
-		questStepDB, errlist := questStep.ConvertToDB()
-		if len(errlist) > 0 {
-			return errlist
+		questStepDB, err := questStep.ConvertToDB()
+		if err != nil {
+			return err
 		}
 		params := questStepDB.GetUpdatesData()
 		if len(params) > 0 {
-			_, err := quest.db.Update(questStepDB.TableName(), params, dbx.HashExp{"id": questStepDB.Id}).Execute()
+			_, err = quest.db.Update(questStepDB.TableName(), params, dbx.HashExp{"id": questStepDB.Id}).Execute()
 			if err != nil {
-				errlist = append(errlist, internal.ErrorList{"не удалось обновить задание" + err.Error()})
-				return errlist
+				return err
 			}
 		}
 	}

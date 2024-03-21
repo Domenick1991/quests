@@ -13,7 +13,7 @@ func NewHistoryService(repo repository.History) *HistoryService {
 	return &HistoryService{repo: repo}
 }
 
-func (s *HistoryService) CompleteSteps(сompleteSteps internal.NewCompleteSteps) []internal.ErrorList {
+func (s *HistoryService) CompleteSteps(сompleteSteps internal.NewCompleteSteps) error {
 	return s.repo.CompleteSteps(сompleteSteps)
 }
 

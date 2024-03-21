@@ -16,14 +16,14 @@ type Authorization interface {
 
 type Quest interface {
 	GetQuests() ([]internal.Quests, error)
-	CreateQuest(quest internal.NewQuest) []internal.ErrorList
+	CreateQuest(quest internal.NewQuest) error
 	CreateQuestStep(newQuestDB internal.NewQuestStepDB) error
-	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) []internal.ErrorList
-	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) []internal.ErrorList
+	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error
+	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error
 }
 
 type History interface {
-	CompleteSteps(сompleteSteps internal.NewCompleteSteps) []internal.ErrorList
+	CompleteSteps(сompleteSteps internal.NewCompleteSteps) error
 	GetHistory(userid int) (internal.UserBonus, error)
 }
 

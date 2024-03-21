@@ -17,7 +17,7 @@ func (s *QuestService) GetQuests() ([]internal.Quests, error) {
 	return s.repo.GetQuests()
 }
 
-func (s *QuestService) CreateQuest(newquest internal.NewQuest) []internal.ErrorList {
+func (s *QuestService) CreateQuest(newquest internal.NewQuest) error {
 	return s.repo.CreateQuest(newquest)
 }
 
@@ -25,9 +25,9 @@ func (s *QuestService) CreateQuestStep(newQuestDB internal.NewQuestStepDB) error
 	return s.repo.CreateQuestStep(newQuestDB)
 }
 
-func (s *QuestService) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) []internal.ErrorList {
+func (s *QuestService) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error {
 	return s.repo.CreateQuestSteps(newQuestSteps)
 }
-func (s *QuestService) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) []internal.ErrorList {
+func (s *QuestService) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error {
 	return s.repo.UpdateQuestSteps(updateQuestSteps)
 }
