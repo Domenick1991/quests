@@ -36,16 +36,16 @@ func (h *Handler) GetQuests(c *gin.Context) {
 // @Security BasicAuth
 func (h *Handler) CreateQuest(c *gin.Context) {
 
-	var quest internal.NewQuest
+	var newQuest internal.NewQuest
 
-	if err := c.ShouldBindJSON(&quest); err == nil {
+	if err := c.ShouldBindJSON(&newQuest); err == nil {
 
-		errlist := h.services.CreateQuest(quest)
+		quest, errlist := h.services.CreateQuest(newQuest)
 		if errlist != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, errlist)
 			return
 		} else {
-			c.JSON(http.StatusOK, gin.H{"Успешно:": "Задания успешно созданы"})
+			c.JSON(http.StatusOK, quest)
 		}
 	} else {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Неверный входной Json": err.Error()})

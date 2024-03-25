@@ -51,35 +51,35 @@ func (quest *QuestRepo) CreateQuest(questDB internal.NewQuestDB) (int, error) {
 
 }
 
-func (quest *QuestRepo) createStep(newQuestStepDB internal.NewQuestStepDB) error {
+func (quest *QuestRepo) CreateQuestStep(questStep internal.NewQuestStep) (int, error) {
+	questStepDB, err := questStep.ConvertToDB()
+	if err != nil {
+		return 0, err
+	}
+	stepID, err := quest.createStep(questStepDB)
+	if err != nil {
+		return 0, err
+	}
+	return stepID, nil
+}
+
+func (quest *QuestRepo) createStep(newQuestStepDB internal.NewQuestStepDB) (int, error) {
 	var oldquestStepDB = internal.NewQuestStepDB{}
 	err := quest.db.Select().From(newQuestStepDB.TableName()).Where(dbx.HashExp{"stepname": newQuestStepDB.StepName, "questid": newQuestStepDB.QuestId}).One(&oldquestStepDB)
 	if err != nil {
 		err = quest.db.Model(&newQuestStepDB).Insert("QuestId", "StepName", "Bonus", "IsMulti")
 		if err != nil {
-			return errors.New("Не удалось добавить задание")
+			return 0, errors.New("Не удалось добавить задание")
 		}
 	} else {
-		return errors.New(fmt.Sprint("Не удалось добавить шаг '", newQuestStepDB.StepName, "' т.к. шаг с именем '", newQuestStepDB.StepName, "' уже сщуествует"))
+		return 0, errors.New(fmt.Sprint("Не удалось добавить шаг '", newQuestStepDB.StepName, "' т.к. шаг уже существует"))
 	}
-	return nil
-}
-
-func (quest *QuestRepo) CreateQuestStep(questStep internal.NewQuestStep) error {
-	questStepDB, err := questStep.ConvertToDB()
-	if err != nil {
-		return err
-	}
-	err = quest.createStep(questStepDB)
-	if err != nil {
-		return err
-	}
-	return nil
+	return newQuestStepDB.Id, nil
 }
 
 func (quest *QuestRepo) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error {
 	for _, questStep := range newQuestSteps.QuestSteps {
-		err := quest.CreateQuestStep(questStep)
+		_, err := quest.CreateQuestStep(questStep)
 		if err != nil {
 			return err
 		}

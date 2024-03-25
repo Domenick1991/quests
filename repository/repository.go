@@ -17,7 +17,7 @@ type Quest interface {
 	GetSteps(q internal.Quests) ([]internal.Steps, error)
 	CheckQuest(questDB internal.NewQuestDB) int
 	CreateQuest(questDB internal.NewQuestDB) (int, error)
-	CreateQuestStep(newQuest internal.NewQuestStep) error
+	CreateQuestStep(newQuest internal.NewQuestStep) (int, error)
 	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error
 	UpdateQuestSteps(updateQuestStep internal.UpdateQuestStep) error
 }
