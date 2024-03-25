@@ -158,7 +158,6 @@ func (questStep *UpdateQuestStep) ConvertToDB() (NewQuestStepDB, error) {
 	}
 	questStepDB.Bonus = questStep.Bonus
 	questStepDB.IsMulti = *questStep.IsMulti
-
 	return questStepDB, nil
 
 }

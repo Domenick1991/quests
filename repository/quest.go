@@ -5,7 +5,6 @@ import (
 	"fmt"
 	dbx "github.com/go-ozzo/ozzo-dbx"
 	"quests/internal"
-	"strconv"
 )
 
 type QuestRepo struct {
@@ -16,58 +15,43 @@ func NewQuestRepo(db *dbx.DB) *QuestRepo {
 	return &QuestRepo{db: db}
 }
 
-func (quest *QuestRepo) GetQuests() ([]internal.Quests, error) {
+func (quest *QuestRepo) GetQuestWithoutStep() ([]internal.Quests, error) {
 	var quests []internal.Quests
 	err := quest.db.Select().From("quests").All(&quests)
 	if err != nil {
 		return quests, errors.New("Ошибка при получении данных о заданиях")
 	}
-	for i, q := range quests {
-		var steps []internal.Steps
-		err = quest.db.Select().From("queststeps").Where(dbx.HashExp{"questid": q.Id}).All(&steps)
-		if err != nil {
-			return quests, errors.New("Ошибка при получении данных о шагах заданий")
-		}
-		quests[i].Steps = steps
-	}
 	return quests, nil
 }
 
-func (quest *QuestRepo) CreateQuest(newquest internal.NewQuest) error {
-	questDB, err := newquest.ConvertToDB()
+func (quest *QuestRepo) GetSteps(q internal.Quests) ([]internal.Steps, error) {
+	var steps []internal.Steps
+	err := quest.db.Select().From("queststeps").Where(dbx.HashExp{"questid": q.Id}).All(&steps)
 	if err != nil {
-		return err
+		return steps, errors.New("Ошибка при получении данных о шагах заданий")
 	}
-
-	var oldquestDB = internal.NewQuestDB{}
-	err = quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldquestDB)
-	if err != nil {
-		err = quest.db.Model(&questDB).Insert("Name", "Cost")
-		if err != nil {
-			return err
-		} else {
-			//Если передавалась информация о шагах - добавляем и шаги
-			if newquest.QuestSteps != nil {
-				for _, questStep := range newquest.QuestSteps {
-					questStep.QuestId = questDB.Id
-					questStepDB, err := questStep.ConvertToDB()
-					if err != nil {
-						return err
-					}
-					err = quest.CreateQuestStep(questStepDB)
-					if err != nil {
-						return err
-					}
-				}
-			}
-			return nil
-		}
-	} else {
-		return fmt.Errorf("Задание с таким именем существует, id :%s", strconv.Itoa(oldquestDB.Id))
-	}
+	return steps, nil
 }
 
-func (quest *QuestRepo) CreateQuestStep(newQuestStepDB internal.NewQuestStepDB) error {
+func (quest *QuestRepo) CheckQuest(questDB internal.NewQuestDB) int {
+	var oldquestDB = internal.NewQuestDB{}
+	err := quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldquestDB)
+	if err != nil {
+		return 0 //не существует
+	}
+	return oldquestDB.Id //существует
+}
+
+func (quest *QuestRepo) CreateQuest(questDB internal.NewQuestDB) (int, error) {
+	err := quest.db.Model(&questDB).Insert("Name", "Cost")
+	if err != nil {
+		return 0, err
+	}
+	return questDB.Id, nil
+
+}
+
+func (quest *QuestRepo) createStep(newQuestStepDB internal.NewQuestStepDB) error {
 	var oldquestStepDB = internal.NewQuestStepDB{}
 	err := quest.db.Select().From(newQuestStepDB.TableName()).Where(dbx.HashExp{"stepname": newQuestStepDB.StepName, "questid": newQuestStepDB.QuestId}).One(&oldquestStepDB)
 	if err != nil {
@@ -81,13 +65,21 @@ func (quest *QuestRepo) CreateQuestStep(newQuestStepDB internal.NewQuestStepDB) 
 	return nil
 }
 
+func (quest *QuestRepo) CreateQuestStep(questStep internal.NewQuestStep) error {
+	questStepDB, err := questStep.ConvertToDB()
+	if err != nil {
+		return err
+	}
+	err = quest.createStep(questStepDB)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (quest *QuestRepo) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error {
 	for _, questStep := range newQuestSteps.QuestSteps {
-		questStepDB, err := questStep.ConvertToDB()
-		if err != nil {
-			return err
-		}
-		err = quest.CreateQuestStep(questStepDB)
+		err := quest.CreateQuestStep(questStep)
 		if err != nil {
 			return err
 		}
@@ -95,19 +87,17 @@ func (quest *QuestRepo) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) e
 	return nil
 }
 
-// @Summary Обновляет информацию о шагах заданий
-func (quest *QuestRepo) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error {
-	for _, questStep := range updateQuestSteps.QuestSteps {
-		questStepDB, err := questStep.ConvertToDB()
+// @Summary Обновляет информацию о шаге задания
+func (quest *QuestRepo) UpdateQuestSteps(updateQuestStep internal.UpdateQuestStep) error {
+	questStepDB, err := updateQuestStep.ConvertToDB()
+	if err != nil {
+		return err
+	}
+	params := questStepDB.GetUpdatesData()
+	if len(params) > 0 {
+		_, err = quest.db.Update(questStepDB.TableName(), params, dbx.HashExp{"id": questStepDB.Id}).Execute()
 		if err != nil {
 			return err
-		}
-		params := questStepDB.GetUpdatesData()
-		if len(params) > 0 {
-			_, err = quest.db.Update(questStepDB.TableName(), params, dbx.HashExp{"id": questStepDB.Id}).Execute()
-			if err != nil {
-				return err
-			}
 		}
 	}
 	return nil

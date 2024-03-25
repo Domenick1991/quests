@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	dbx "github.com/go-ozzo/ozzo-dbx"
 	"quests/internal"
 	"strconv"
@@ -15,36 +14,19 @@ func NewHistoryRepo(db *dbx.DB) *HistoryRepo {
 	return &HistoryRepo{db: db}
 }
 
-func (history *HistoryRepo) CompleteSteps(сompleteSteps internal.NewCompleteSteps) error {
-	for _, сompleteStep := range сompleteSteps.CompleteSteps {
-		сompleteStepDB, err := сompleteStep.ConvertToDB()
+func (history *HistoryRepo) CompleteSteps(сompleteStep internal.CompleteStep) error {
+	сompleteStepDB, err := сompleteStep.ConvertToDB()
+	if err != nil {
+		return err
+	}
+	//Если задание можно выполнить - выполняем, если нет, то просто игнорируем
+	if checkCompliteStep(history.db, сompleteStep) {
+		err = history.db.Model(&сompleteStepDB).Insert()
 		if err != nil {
 			return err
 		}
-		//Если задание можно выполнить - выполняем, если нет, то просто игнорируем
-		if checkCompliteStep(history.db, сompleteStep) {
-			err = history.db.Model(&сompleteStepDB).Insert()
-			if err != nil {
-				return err
-			}
-		}
 	}
 	return nil
-}
-
-func (history *HistoryRepo) GetHistory(userid int) (internal.UserBonus, error) {
-	questIds := getCompletedQuestId(history.db, userid)
-	userBonus := internal.UserBonus{}
-	if len(questIds) > 0 {
-		for _, questId := range questIds {
-			CompletedQuest := GetCompletedQuestForUser(history.db, userid, questId)
-			userBonus.CompletedQuests = append(userBonus.CompletedQuests, CompletedQuest)
-			userBonus.TotalBonus += CompletedQuest.Bonus
-		}
-		return userBonus, nil
-	} else {
-		return userBonus, errors.New("Пользователь еще не выполнял задания")
-	}
 }
 
 // ExicuteCountSumQuery Обёртка предназначена для запросов, которые возвращают одно целое значение
@@ -82,64 +64,64 @@ func checkCompliteStep(DB *dbx.DB, сompleteStep internal.CompleteStep) bool {
 }
 
 // getCompletedQuestId возвращает ИД заданий в которых участвовал пользователь
-func getCompletedQuestId(db *dbx.DB, userId int) []string {
-	var questIds []string
+func (history *HistoryRepo) GetCompletedQuest(userId int) []internal.Quests {
+	var quests []internal.Quests
 
-	queryText := `SELECT distinct q.id
+	queryText := `SELECT distinct q.id, q.questname
 						FROM public.queststeps as s
 						left join history as h on s.id = h.stepid
 						left join quests as q on s.questid = q.id
 						where h.userid = ` + strconv.Itoa(userId)
-	query := db.NewQuery(queryText)
+	query := history.db.NewQuery(queryText)
 	rows, err := query.Rows()
 	if err != nil {
-		return questIds
+		return quests
 	}
 
 	for rows.Next() {
-		var id string
-		rows.Scan(&id)
-		questIds = append(questIds, id)
+		var id, name string
+		rows.Scan(&id, &name)
+		quests = append(quests, internal.Quests{id, name, nil})
 	}
-	return questIds
+	return quests
 }
 
 // GetCompletedQuestForUser Возвращает информацию по заданию для пользователя
-func GetCompletedQuestForUser(db *dbx.DB, userId int, questId string) internal.UserCompletedQuest {
+func (history *HistoryRepo) GetCompletedQuestForUser(userId int, quest internal.Quests) internal.UserCompletedQuest {
 	UserCompletedQuest := internal.UserCompletedQuest{}
 
-	UserCompletedQuest.QuestId = questId
-	//TODO UserCompletedQuest.QuestName
+	UserCompletedQuest.QuestId = quest.Id
+	UserCompletedQuest.QuestName = quest.QuestName
 
 	//Всего заданий
 	queryText := `	SELECT count(*)
 					FROM public.queststeps
-					where questid = ` + questId
-	UserCompletedQuest.AllStepsCount = ExicuteCountSumQuery(db, queryText)
+					where questid = ` + quest.Id
+	UserCompletedQuest.AllStepsCount = ExicuteCountSumQuery(history.db, queryText)
 
 	//Всего заданий выполненных пользователей
 	queryText = `SELECT count(*)
 					FROM public.queststeps as s
 					left join history as h on s.id = h.stepid
 					left join quests as q on s.questid = q.id
-					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + questId
-	UserCompletedQuest.CompletedStepsCount = ExicuteCountSumQuery(db, queryText)
+					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + quest.Id
+	UserCompletedQuest.CompletedStepsCount = ExicuteCountSumQuery(history.db, queryText)
 
 	//Сумма бонуса за выполненные шаги задания
 	queryText = `SELECT Sum(s.bonus)
 					FROM public.queststeps as s
 					left join history as h on s.id = h.stepid
 					left join quests as q on s.questid = q.id
-					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + questId
-	UserCompletedQuest.Bonus = ExicuteCountSumQuery(db, queryText)
+					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + quest.Id
+	UserCompletedQuest.Bonus = ExicuteCountSumQuery(history.db, queryText)
 
 	//region пройдемся по каждому выполненному шагу пользователя и посчитаем сколько раз был выполнен каждый шаг и сумму бонусов за это
 	queryText = `SELECT distinct (s.id)
 					FROM public.queststeps as s
 					left join history as h on s.id = h.stepid
 					left join quests as q on s.questid = q.id
-					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + questId
-	query := db.NewQuery(queryText)
+					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + quest.Id
+	query := history.db.NewQuery(queryText)
 	rowsSteps, _ := query.Rows()
 	CompletedStepsCount := 0
 	type stepInfo struct{ count, bonus int }
@@ -151,8 +133,8 @@ func GetCompletedQuestForUser(db *dbx.DB, userId int, questId string) internal.U
 					FROM public.queststeps as s
 					left join history as h on s.id = h.stepid
 					left join quests as q on s.questid = q.id
-					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + questId + ` and s.id =` + stepid
-		query = db.NewQuery(queryText)
+					where h.userid = ` + strconv.Itoa(userId) + ` and q.id = ` + quest.Id + ` and s.id =` + stepid
+		query = history.db.NewQuery(queryText)
 		rows, _ := query.Rows()
 
 		var stepsInfo map[string]stepInfo = make(map[string]stepInfo)

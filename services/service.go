@@ -17,7 +17,6 @@ type Authorization interface {
 type Quest interface {
 	GetQuests() ([]internal.Quests, error)
 	CreateQuest(quest internal.NewQuest) error
-	CreateQuestStep(newQuestDB internal.NewQuestStepDB) error
 	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error
 	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error
 }

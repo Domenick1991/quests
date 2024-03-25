@@ -24,7 +24,7 @@ func main() {
 
 	//инициализируем логгер
 	logger := slogpretty.SetupLogger()
-	logger.Info("Logger is start", cfg.HttpServer.Address)
+	logger.Info("Logger is start", "adress", cfg.HttpServer.Address)
 
 	storage, err := repository.New(cfg.DbStorage)
 	if err != nil {

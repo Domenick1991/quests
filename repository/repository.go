@@ -13,15 +13,18 @@ type Authorization interface {
 }
 
 type Quest interface {
-	GetQuests() ([]internal.Quests, error)
-	CreateQuest(quest internal.NewQuest) error
-	CreateQuestStep(newQuestDB internal.NewQuestStepDB) error
+	GetQuestWithoutStep() ([]internal.Quests, error)
+	GetSteps(q internal.Quests) ([]internal.Steps, error)
+	CheckQuest(questDB internal.NewQuestDB) int
+	CreateQuest(questDB internal.NewQuestDB) (int, error)
+	CreateQuestStep(newQuest internal.NewQuestStep) error
 	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error
-	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error
+	UpdateQuestSteps(updateQuestStep internal.UpdateQuestStep) error
 }
 type History interface {
-	CompleteSteps(сompleteSteps internal.NewCompleteSteps) error
-	GetHistory(userid int) (internal.UserBonus, error)
+	CompleteSteps(сompleteStep internal.CompleteStep) error
+	GetCompletedQuest(userId int) []internal.Quests
+	GetCompletedQuestForUser(userId int, quest internal.Quests) internal.UserCompletedQuest
 }
 
 type Repository struct {

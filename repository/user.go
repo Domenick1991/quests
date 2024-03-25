@@ -5,6 +5,7 @@ import (
 	"fmt"
 	dbx "github.com/go-ozzo/ozzo-dbx"
 	"quests/internal"
+	"strings"
 )
 
 type AuthRepo struct {
@@ -58,4 +59,25 @@ func (auth *AuthRepo) DeleteUser(userId int) error {
 	} else {
 		return nil
 	}
+}
+
+// EncodePassword функция возвращает хэш для пароля
+func EncodePassword(password string) string {
+	// Для пэт проекта сделаем просто, добавим в конец к паролю @1 и сдвинем каждый символы на 1
+	passwordNew := password + "@1"
+	bs := []byte(passwordNew)
+	for i := range bs {
+		bs[i] = bs[i] + 1
+	}
+	return string(bs)
+}
+
+// DecodePassword Функция возвращает пароль по хэшу
+func DecodePassword(password string) string {
+	bs := []byte(password)
+	for i := range bs {
+		bs[i] = bs[i] - 1
+	}
+	pass := string(bs)
+	return pass[0:strings.LastIndex(pass, "@1")]
 }
