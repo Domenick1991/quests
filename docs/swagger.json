@@ -292,7 +292,7 @@
         }
     },
     "definitions": {
-        "internal.CompleteStep": {
+        "internal.CompletedStep": {
             "type": "object",
             "properties": {
                 "stepid": {
@@ -321,7 +321,7 @@
                     "description": "Идентификатор задания",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/internal.CompleteStep"
+                        "$ref": "#/definitions/internal.CompletedStep"
                     }
                 }
             }

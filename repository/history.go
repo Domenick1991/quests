@@ -14,14 +14,14 @@ func NewHistoryRepo(db *dbx.DB) *HistoryRepo {
 	return &HistoryRepo{db: db}
 }
 
-func (history *HistoryRepo) CompleteSteps(сompleteStep internal.CompleteStep) error {
-	сompleteStepDB, err := сompleteStep.ConvertToDB()
+func (history *HistoryRepo) CompleteSteps(сompletedStep internal.CompletedStep) error {
+	сompletedStepDB, err := сompletedStep.ConvertToDB()
 	if err != nil {
 		return err
 	}
 	//Если задание можно выполнить - выполняем, если нет, то просто игнорируем
-	if checkCompliteStep(history.db, сompleteStep) {
-		err = history.db.Model(&сompleteStepDB).Insert()
+	if checkComplitedStep(history.db, сompletedStep) {
+		err = history.db.Model(&сompletedStepDB).Insert()
 		if err != nil {
 			return err
 		}
@@ -43,11 +43,11 @@ func ExicuteCountSumQuery(db *dbx.DB, queryText string) int {
 	return result
 }
 
-// checkCompliteStep Устанавливает признак выполнения у шага
-func checkCompliteStep(DB *dbx.DB, сompleteStep internal.CompleteStep) bool {
+// checkComplitedStep Устанавливает признак выполнения у шага
+func checkComplitedStep(DB *dbx.DB, сompletedStep internal.CompletedStep) bool {
 	//Получаем id всех выполненных заданий
 
-	queryText := "SELECT s.id FROM public.queststeps as s where (s.ismulti = false and s.id not in (select h.stepid from history h where h.userid = " + strconv.Itoa(сompleteStep.Userid) + " )) or s.ismulti = true"
+	queryText := "SELECT s.id FROM public.queststeps as s where (s.ismulti = false and s.id not in (select h.stepid from history h where h.userid = " + strconv.Itoa(сompletedStep.Userid) + " )) or s.ismulti = true"
 	query := DB.NewQuery(queryText)
 	rows, err := query.Rows()
 	if err != nil {
@@ -59,7 +59,7 @@ func checkCompliteStep(DB *dbx.DB, сompleteStep internal.CompleteStep) bool {
 		rows.Scan(&id)
 		stepIds[id] = true
 	}
-	_, inMap := stepIds[сompleteStep.Stepid]
+	_, inMap := stepIds[сompletedStep.Stepid]
 	return inMap
 }
 

@@ -10,13 +10,13 @@ import (
 
 type mockQuestRepo struct {
 	repository.Quest
-	expectedQuest      int
+	expectedQuestID    int
 	expectedErr        error
 	expectedCheckQuest int
 }
 
 func (m *mockQuestRepo) CreateQuest(questDB internal.NewQuestDB) (int, error) {
-	return m.expectedQuest, m.expectedErr
+	return m.expectedQuestID, m.expectedErr
 }
 
 /*
@@ -56,14 +56,14 @@ func TestCreateQuest(t *testing.T) {
 	tests := []APITestCase{
 		{
 			name:         "Создание задания без шагов",
-			questRepo:    &mockQuestRepo{expectedQuest: 1},
+			questRepo:    &mockQuestRepo{expectedQuestID: 1},
 			inputData:    internal.NewQuest{Name: "Футбол"},
 			expectedData: &internal.Quests{Id: "1", QuestName: "Футбол", Steps: []internal.Steps{}},
 			expectedErr:  nil,
 		},
 		{
 			name:        "Создание задания без шагов. Без имени",
-			questRepo:   &mockQuestRepo{expectedQuest: 1},
+			questRepo:   &mockQuestRepo{expectedQuestID: 1},
 			inputData:   internal.NewQuest{Name: ""},
 			expectedErr: errors.New("Имя задания должно содержать от 1 до 200 символов"),
 		},
@@ -85,3 +85,45 @@ func TestCreateQuest(t *testing.T) {
 		})
 	}
 }
+
+/*func TestUpdateQuestSteps(t *testing.T) {
+	type APITestCase struct {
+		name         string
+		questRepo    *mockQuestRepo
+		inputData    internal.UpdateQuestSteps
+		expectedData *internal.UpdateQuestSteps
+		expectedErr  error
+	}
+
+	tests := []APITestCase{
+		{
+			name:      "Создание задания без шагов",
+			questRepo: &mockQuestRepo{expectedQuestID: 1},
+			inputData: internal.UpdateQuestSteps{QuestSteps: []internal.UpdateQuestStep{
+				{
+					Id:      2,
+					Bonus:   6000,
+					IsMulti: *false,
+				},
+				{
+					Id:      3,
+					Bonus:   60,
+					IsMulti: *false,
+				},
+			},
+			},
+			expectedData: &internal.UpdateQuestSteps{Id: "1", QuestName: "Футбол", Steps: []internal.Steps{}},
+			expectedErr:  nil,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := NewQuestService(tc.questRepo)
+
+			quest, err := srv.CreateQuest(tc.inputData)
+
+			assert.Equal(t, tc.expectedData, quest)
+			assert.Equal(t, tc.expectedErr, err)
+		})
+	}
+}*/

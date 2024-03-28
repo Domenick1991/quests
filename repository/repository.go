@@ -22,7 +22,7 @@ type Quest interface {
 	UpdateQuestSteps(updateQuestStep internal.UpdateQuestStep) error
 }
 type History interface {
-	CompleteSteps(сompleteStep internal.CompleteStep) error
+	CompleteSteps(сompletedStep internal.CompletedStep) error
 	GetCompletedQuest(userId int) []internal.Quests
 	GetCompletedQuestForUser(userId int, quest internal.Quests) internal.UserCompletedQuest
 }

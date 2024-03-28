@@ -26,33 +26,33 @@ type Steps struct {
 // NewCompleteSteps model info
 // @Description NewCompleteSteps  json для отметки о выполнении шага задания пользователем
 type NewCompleteSteps struct {
-	CompleteSteps []CompleteStep `json:"CompleteSteps"` //Идентификатор задания
+	CompleteSteps []CompletedStep `json:"CompleteSteps"` //Идентификатор задания
 }
 
-type CompleteStep struct {
+type CompletedStep struct {
 	Stepid int `json:"stepid"` //Идентификатор шага
 	Userid int `json:"userid"` //Идентификатор пользователя выполневшего шаг
 }
 
-func (complete *CompleteStep) ConvertToDB() (CompleteStepDB, error) {
-	completeDB := CompleteStepDB{}
+func (complete *CompletedStep) ConvertToDB() (CompletedStepDB, error) {
+	completedDB := CompletedStepDB{}
 	if complete.Stepid == 0 {
-		return completeDB, errors.New("Идентификатор шага должен быть больше 0")
+		return completedDB, errors.New("Идентификатор шага должен быть больше 0")
 	}
 	if complete.Userid == 0 {
-		return completeDB, errors.New("Идентификатор пользователя должен быть больше 0")
+		return completedDB, errors.New("Идентификатор пользователя должен быть больше 0")
 	}
-	completeDB.Stepid = complete.Stepid
-	completeDB.Userid = complete.Userid
-	return completeDB, nil
+	completedDB.Stepid = complete.Stepid
+	completedDB.Userid = complete.Userid
+	return completedDB, nil
 }
 
-type CompleteStepDB struct {
+type CompletedStepDB struct {
 	Stepid int `json:"stepid"` //Идентификатор шага
 	Userid int `json:"userid"` //Идентификатор пользователя выполневшего шаг
 }
 
-func (quest *CompleteStepDB) TableName() string {
+func (quest *CompletedStepDB) TableName() string {
 	return "history"
 }
 

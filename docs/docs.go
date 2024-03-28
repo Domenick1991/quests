@@ -299,7 +299,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal.CompleteStep": {
+        "internal.CompletedStep": {
             "type": "object",
             "properties": {
                 "stepid": {
@@ -328,7 +328,7 @@ const docTemplate = `{
                     "description": "Идентификатор задания",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/internal.CompleteStep"
+                        "$ref": "#/definitions/internal.CompletedStep"
                     }
                 }
             }

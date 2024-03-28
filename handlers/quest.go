@@ -96,12 +96,12 @@ func (h *Handler) UpdateQuestSteps(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&updateQuestSteps); err == nil {
 
-		errlist := h.services.UpdateQuestSteps(updateQuestSteps)
+		updatedSteps, errlist := h.services.UpdateQuestSteps(updateQuestSteps)
 		if errlist != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, errlist)
 			return
 		} else {
-			c.JSON(http.StatusOK, gin.H{"Успешно:": "шаги к заданию успешно обновлены"})
+			c.JSON(http.StatusOK, updatedSteps)
 		}
 	} else {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Неверный входной Json": err.Error()})

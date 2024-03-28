@@ -18,7 +18,7 @@ type Quest interface {
 	GetQuests() ([]internal.Quests, error)
 	CreateQuest(quest internal.NewQuest) (*internal.Quests, error)
 	CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error
-	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error
+	UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) (*internal.UpdateQuestSteps, error)
 }
 
 type History interface {

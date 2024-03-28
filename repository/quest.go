@@ -34,12 +34,12 @@ func (quest *QuestRepo) GetSteps(q internal.Quests) ([]internal.Steps, error) {
 }
 
 func (quest *QuestRepo) CheckQuest(questDB internal.NewQuestDB) int {
-	var oldquestDB = internal.NewQuestDB{}
-	err := quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldquestDB)
+	var oldQuestDB = internal.NewQuestDB{}
+	err := quest.db.Select().From(questDB.TableName()).Where(dbx.HashExp{"questname": questDB.Name}).One(&oldQuestDB)
 	if err != nil {
 		return 0 //не существует
 	}
-	return oldquestDB.Id //существует
+	return oldQuestDB.Id //существует
 }
 
 func (quest *QuestRepo) CreateQuest(questDB internal.NewQuestDB) (int, error) {
@@ -64,8 +64,8 @@ func (quest *QuestRepo) CreateQuestStep(questStep internal.NewQuestStep) (int, e
 }
 
 func (quest *QuestRepo) createStep(newQuestStepDB internal.NewQuestStepDB) (int, error) {
-	var oldquestStepDB = internal.NewQuestStepDB{}
-	err := quest.db.Select().From(newQuestStepDB.TableName()).Where(dbx.HashExp{"stepname": newQuestStepDB.StepName, "questid": newQuestStepDB.QuestId}).One(&oldquestStepDB)
+	var oldQuestStepDB = internal.NewQuestStepDB{}
+	err := quest.db.Select().From(newQuestStepDB.TableName()).Where(dbx.HashExp{"stepname": newQuestStepDB.StepName, "questid": newQuestStepDB.QuestId}).One(&oldQuestStepDB)
 	if err != nil {
 		err = quest.db.Model(&newQuestStepDB).Insert("QuestId", "StepName", "Bonus", "IsMulti")
 		if err != nil {

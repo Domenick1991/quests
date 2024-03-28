@@ -78,12 +78,13 @@ func (s *QuestService) CreateQuest(newQuest internal.NewQuest) (*internal.Quests
 func (s *QuestService) CreateQuestSteps(newQuestSteps internal.NewQuestSteps) error {
 	return s.repo.CreateQuestSteps(newQuestSteps)
 }
-func (s *QuestService) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) error {
+
+func (s *QuestService) UpdateQuestSteps(updateQuestSteps internal.UpdateQuestSteps) (*internal.UpdateQuestSteps, error) {
 	for _, questStep := range updateQuestSteps.QuestSteps {
 		err := s.repo.UpdateQuestSteps(questStep)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return &updateQuestSteps, nil
 }

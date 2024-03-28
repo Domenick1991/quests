@@ -1,5 +1,5 @@
 definitions:
-  internal.CompleteStep:
+  internal.CompletedStep:
     properties:
       stepid:
         description: Идентификатор шага
@@ -19,7 +19,7 @@ definitions:
       CompleteSteps:
         description: Идентификатор задания
         items:
-          $ref: '#/definitions/internal.CompleteStep'
+          $ref: '#/definitions/internal.CompletedStep'
         type: array
     type: object
   internal.NewQuest:
