@@ -91,7 +91,7 @@ func TestCreateQuest(t *testing.T) {
 		name         string
 		questRepo    *mockQuestRepo
 		inputData    internal.UpdateQuestSteps
-		expectedData *internal.UpdateQuestSteps
+		expectedData internal.UpdateQuestSteps
 		expectedErr  error
 	}
 
@@ -103,17 +103,29 @@ func TestCreateQuest(t *testing.T) {
 				{
 					Id:      2,
 					Bonus:   6000,
-					IsMulti: *false,
+					IsMulti: false,
 				},
 				{
 					Id:      3,
 					Bonus:   60,
-					IsMulti: *false,
+					IsMulti: false,
 				},
 			},
 			},
-			expectedData: &internal.UpdateQuestSteps{Id: "1", QuestName: "Футбол", Steps: []internal.Steps{}},
-			expectedErr:  nil,
+			expectedData: internal.UpdateQuestSteps{QuestSteps: []internal.UpdateQuestStep{
+				{
+					Id:      2,
+					Bonus:   6000,
+					IsMulti: false,
+				},
+				{
+					Id:      3,
+					Bonus:   60,
+					IsMulti: false,
+				},
+			},
+			},
+			expectedErr: nil,
 		},
 	}
 	for _, tc := range tests {

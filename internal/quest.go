@@ -103,7 +103,7 @@ type NewQuestStep struct {
 	QuestId  int    `json:"QuestId"`  //Идентификатор задания. При создании методом CreateQuest, значение будет проигнорировано, т.к. будет подставляться идентификатор создаваемого задания
 	StepName string `json:"StepName"` //Описание шага
 	Bonus    int    `json:"Bonus"`    //Бонус за задание
-	IsMulti  *bool  `json:"IsMulti"`  //Признак того, что шаг можно выполнять несколько раз
+	IsMulti  bool   `json:"IsMulti"`  //Признак того, что шаг можно выполнять несколько раз
 }
 
 func (questStep *NewQuestStep) ConvertToDB() (NewQuestStepDB, error) {
@@ -121,10 +121,10 @@ func (questStep *NewQuestStep) ConvertToDB() (NewQuestStepDB, error) {
 		return questStepDB, errors.New("Бонус не может быть меньше 0")
 	}
 
-	questStepDB.IsMulti = *questStep.IsMulti
-	if questStep.IsMulti == nil {
+	questStepDB.IsMulti = questStep.IsMulti
+	/*if questStep.IsMulti == nil {
 		questStepDB.IsMulti = false
-	}
+	}*/
 
 	questStepDB.QuestId = questStep.QuestId
 	questStepDB.Bonus = questStep.Bonus
@@ -141,9 +141,9 @@ type UpdateQuestSteps struct {
 }
 
 type UpdateQuestStep struct {
-	Id      int   `json:"id"`      //Идентификатор задания
-	Bonus   int   `json:"Bonus"`   //Бонус за задание
-	IsMulti *bool `json:"IsMulti"` //Признак того, что шаг можно выполнять несколько раз
+	Id      int  `json:"id"`      //Идентификатор задания
+	Bonus   int  `json:"Bonus"`   //Бонус за задание
+	IsMulti bool `json:"IsMulti"` //Признак того, что шаг можно выполнять несколько раз
 }
 
 func (questStep *UpdateQuestStep) ConvertToDB() (NewQuestStepDB, error) {
@@ -151,13 +151,10 @@ func (questStep *UpdateQuestStep) ConvertToDB() (NewQuestStepDB, error) {
 	questStepDB.Id = questStep.Id
 
 	if questStep.Id == 0 {
-		return questStepDB, errors.New("Не указан идентификатор шага, который необходимо обновить")
-	}
-	if questStep.IsMulti == nil {
-		return questStepDB, errors.New("кажите признак многократного выполнения")
+		return questStepDB, errors.New("не указан идентификатор шага, который необходимо обновить")
 	}
 	questStepDB.Bonus = questStep.Bonus
-	questStepDB.IsMulti = *questStep.IsMulti
+	questStepDB.IsMulti = questStep.IsMulti
 	return questStepDB, nil
 
 }

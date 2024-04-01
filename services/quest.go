@@ -68,7 +68,7 @@ func (s *QuestService) CreateQuest(newQuest internal.NewQuest) (*internal.Quests
 			if err != nil {
 				return nil, err
 			}
-			step := internal.Steps{Id: stepID, StepName: questStep.StepName, Bonus: questStep.Bonus, IsMulti: *questStep.IsMulti}
+			step := internal.Steps{Id: stepID, StepName: questStep.StepName, Bonus: questStep.Bonus, IsMulti: questStep.IsMulti}
 			quest.Steps[i] = step
 		}
 	}
